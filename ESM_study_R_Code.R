@@ -36,7 +36,7 @@ basic <- filter(basic, alias != "Janne") ## experiment did not work
 ##removing unrealistic accuracies:
 hist(basic$DSST_acc_computation)
 which(basic$DSST_acc_computation > 100)
-basic <- slice(basic, -443, -478, -482, -700, -722,-1830)
+basic <- slice(basic, -154, -1314, -1315, -1577, -1578,-1579)
 
 
 
@@ -144,7 +144,7 @@ summary(martsub$DSST_CALC)
 ## for participants rlc013 and joel the 1 values are unrealistic, while the 3 values seem to be roughly in line with their performance
 ## for the other participants the values were not realistic
 print(low_vals)
-new_low_vals <- c(158, 544, 833, 956,1438, 1464, 1660)
+new_low_vals <- c(489, 544, 882, 962,991, 1087, 1172)
 basic <- slice(basic, -new_low_vals)
 
 
@@ -271,7 +271,7 @@ cor_testing(cor_matrix, "CV", "MSSD")
 
 ##for a correlation matrix one can use apaTables:
 library(apaTables)
-cor_table_apa <- apa.cor.table(cor_matrix, "cor_table_script_3.doxc")
+cor_table_apa <- apa.cor.table(cor_matrix, "cor_table_script_4.doxc")
 print(cor_table_apa)
 
 
@@ -533,16 +533,6 @@ basic$beeplog <- log(basic$beepsent)
 
 ##lets see if improved model fit:
 
-res2 <- lme(DSST_CALC ~ pos_cmc + pos_cwc + neg_cmc + neg_cwc + fat_cmc + fat_cwc + beeplog + , random = ~ neg_cwc + pos_cwc + beeplog| alias,
-            data = basic,corr = corGaus (form = ~ beepsent |alias, nugget = TRUE),  na.action=na.omit, method="ML", control=list(msMaxIter=1000)) 
-summary(res2)
-
-res3 <- lmer(DSST_CALC ~ pos_cmc + pos_cwc + neg_cmc + neg_cwc + fat_cmc + fat_cwc + beeplog + 
-               (beeplog + neg_cwc | alias),
-             data = basic, REML = FALSE, control = lmerControl(optCtrl = list(maxfun = 1000)))
-
-# Display the summary of the model
-summary(res3)
 ##age and gender as covariates
 RLC_ID_MATCH <- subset(Baseline_data_participantsrlc, select = c("Age", "Gender"))
 RLC_ID_MATCH$connectionId <- basic %>% group_by(connectionId) %>% summarize(connectionId = mean(connectionId))
@@ -553,8 +543,24 @@ basic <- right_join(RLC_ID_MATCH, basic, by= "connectionId")
 res2 <- lme(DSST_CALC ~ pos_cwc+neg_cwc+ pos_cmc* neg_cmc + fat_cmc + fat_cwc + beeplog + Age , random = ~  neg_cwc | alias,
             data = basic,corr = corGaus (form = ~ beepsent |alias, nugget = TRUE),  na.action=na.omit, method="ML", control=list(msMaxIter=10000000)) 
 summary(res2)
+## in a previous version of the code i used a function to calculate CIs, however this is not accurate as it turns out, so now i wrote a function myself and used the output of the summary of the model
 
-print(intervals(res2, which = "fixed")) ## this gives CI which is important for making the table of the data
+calc_stand <- function(value, stderr){
+  std
+  lower_bound <- value-1.96*stderr
+  upper_bound <- value+1.96*stderr
+  CI <- c(lower_bound, upper_bound)
+  CI
+}
+calc_stand(0.034511,0.0185699)
+calc_stand(-0.022421,0.0289852)
+calc_stand(-0.010036,0.1362278)
+calc_stand(-0.428860,0.1738391)
+calc_stand(-0.092458,0.0443476)
+calc_stand(-0.102570, 0.0363357)
+calc_stand( -0.262739, 0.2652835)
+calc_stand(0.976180, 0.0868751)
+calc_stand(-0.165098, 0.0339573)
 
 ## calculating ICC 
 
