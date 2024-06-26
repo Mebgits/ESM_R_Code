@@ -202,7 +202,8 @@ summary(model)
 
 
 ## all the values from checking the assumptions are the same so I am assumming adding more factors doesn't change anything in that regard?
-## model 3:
+##actually nevermind its better to double check cause they are not actually the same
+##model 3:
 
 ## 
 
@@ -216,10 +217,78 @@ basic <- basic %>%
   mutate(neg_pc = negaff - mean(negaff, na.rm = TRUE)) %>%
   ungroup()
 
+
+
+
 model <- lme(DSST_CALC ~ fat_pc+ pos_pc+ neg_pc+social_company_numeric+Location_binary+ Age + beeplog,
              random = ~neg_pc +fat_pc| alias,  correlation =corAR1(form = ~ beepsent | alias), data = basic,
              na.action = na.omit, method = "ML",control=list(msMaxIter=1000))
 summary(model)
+fitval <- fitted(model)
+stdres <- resid(model, type="pearson")
+plot(fitval, stdres, pch=19, cex=0.5)
+abline(h=0)
+abline(h=c(-1.96,1.96), lty="dotted")
+
+
+## jitter
+
+plot(jitter(fitval, amount=0.2), jitter(stdres, amount=0.3), pch=19, cex=0.5)
+abline(h=0)
+abline(h=c(-1.96,1.96), lty="dotted")
+
+round(100 * mean(abs(stdres) > 1.96), digits=2) ##4.57 seems ok 
+
+##residuals: 
+hist(stdres, main="", xlab="Standardized Residual") ## right skewed, but otherwise normal 
+
+hist(stdres, breaks=50, main="", xlab="Standardized Residual", freq=FALSE)
+curve(dnorm(x, mean=mean(stdres), sd=sd(stdres)), add=TRUE, lwd=2)
+
+qqnorm(stdres, pch=19, cex=0.5)
+qqline(stdres) ## it being skewed shows up here as well
+
+
+#histograms and normal probability plots of the random effects for intercepts and slopes
+par(mfrow=c(1,1))
+hist(ranef(res)[,1], main="Histogram", xlab="Random Effects for Intercepts")
+hist(ranef(res)[,2], main="Histogram", xlab="Random Effects for Slopes")
+qqnorm(ranef(res)[,1], pch=19, cex=0.5)
+qqline(ranef(res)[,1])
+qqnorm(ranef(res)[,2], pch=19, cex=0.5)
+qqline(ranef(res)[,2])
+
+## might be a bit problematic, especially one value in the second figure(s), but I will leave that to you
+
+# plot random effects for intercepts and slopes against each other
+par(mfrow=c(1,1))
+plot(ranef(res)[,1], ranef(res)[,2], xlab="Random Effects for Intercepts",
+     ylab="Random Effects for Slopes", pch=19)
+
+
+
+library(lme4)
+
+model <- lmer(DSST_CALC ~ pos_pc+neg_pc+fat_pc+ social_company_numeric + Location_binary + Age + beeplog + (fat_pc | alias), 
+              data = basic, na.action = na.omit)
+
+inf <- influence(model)
+cds <- cooks.distance(inf)
+plot(cds, type="o", pch=19)
+abline(h=0.07, lty="dotted")
+thresh <- 4/1993
+cdsthresh <- which(cds > thresh)
+
+## adding the stdres 
+
+stdres<- resid(res, type="pearson")
+
+## usually standardized residuals are considered outliers if over 3
+
+resvals <- which(stdres > 3)
+
+common <- intersect(resvals, cdsthresh)
+print(common) ##it seems that cooks values and residuals dont change
 
 ## this isthe best i could find that converges 
 
@@ -229,7 +298,9 @@ model <- lme(DSST_CALC ~ fat_pc+ pos_pc+ neg_pc+social_company_numeric+Location_
 summary(model)
 
 
-##model 4 
+##model 4:
+
+
 basic <- basic %>%
   group_by(alias) %>%
   mutate(conc_pc = Concentratie_sliderNegPos - mean(Concentratie_sliderNegPos, na.rm = TRUE)) %>%
@@ -239,7 +310,77 @@ model <- lme(DSST_CALC ~ conc_pc+fat_pc+ pos_pc+ neg_pc+social_company_numeric+L
              random = ~pos_pc +fat_pc| alias,  correlation =corAR1(form = ~ beepsent | alias), data = basic,
              na.action = na.omit, method = "ML",control=list(msMaxIter=1000))
 summary(model)
+fitval <- fitted(model)
+stdres <- resid(model, type="pearson")
+plot(fitval, stdres, pch=19, cex=0.5)
+abline(h=0)
+abline(h=c(-1.96,1.96), lty="dotted")
 
 
+## jitter
+
+plot(jitter(fitval, amount=0.2), jitter(stdres, amount=0.3), pch=19, cex=0.5)
+abline(h=0)
+abline(h=c(-1.96,1.96), lty="dotted")
+
+round(100 * mean(abs(stdres) > 1.96), digits=2) ##4.97 seems ok 
+
+##residuals: 
+hist(stdres, main="", xlab="Standardized Residual") ## right skewed, but otherwise normal 
+
+hist(stdres, breaks=50, main="", xlab="Standardized Residual", freq=FALSE)
+curve(dnorm(x, mean=mean(stdres), sd=sd(stdres)), add=TRUE, lwd=2)
+
+qqnorm(stdres, pch=19, cex=0.5)
+qqline(stdres) ## it being skewed shows up here as well
+
+
+#histograms and normal probability plots of the random effects for intercepts and slopes
+par(mfrow=c(1,1))
+hist(ranef(res)[,1], main="Histogram", xlab="Random Effects for Intercepts")
+hist(ranef(res)[,2], main="Histogram", xlab="Random Effects for Slopes")
+qqnorm(ranef(res)[,1], pch=19, cex=0.5)
+qqline(ranef(res)[,1])
+qqnorm(ranef(res)[,2], pch=19, cex=0.5)
+qqline(ranef(res)[,2])
+
+## might be a bit problematic, especially one value in the second figure(s), but I will leave that to you
+
+# plot random effects for intercepts and slopes against each other
+par(mfrow=c(1,1))
+plot(ranef(res)[,1], ranef(res)[,2], xlab="Random Effects for Intercepts",
+     ylab="Random Effects for Slopes", pch=19)
+
+
+
+library(lme4)
+
+model <- lmer(DSST_CALC ~ conc_pc+fat_pc+ social_company_numeric + Location_binary + Age + beeplog + (fat_pc | alias), 
+              data = basic, na.action = na.omit)
+
+inf <- influence(model)
+cds <- cooks.distance(inf)
+plot(cds, type="o", pch=19)
+abline(h=0.07, lty="dotted")
+thresh <- 4/1993
+cdsthresh <- which(cds > thresh)
+
+## adding the stdres 
+
+stdres<- resid(res, type="pearson")
+
+## usually standardized residuals are considered outliers if over 3
+
+resvals <- which(stdres > 3)
+
+common <- intersect(resvals, cdsthresh)
+print(common)
+## no outliers 
 ##again best model i could find 
+
+model <- lme(DSST_CALC ~ conc_pc+fat_pc+ pos_pc+ neg_pc+social_company_numeric+Location_binary+ Age + beeplog,
+             random = ~pos_pc +fat_pc| alias,  correlation =corAR1(form = ~ beepsent | alias), data = basic,
+             na.action = na.omit, method = "ML",control=list(msMaxIter=1000))
+
+
 
