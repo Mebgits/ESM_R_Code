@@ -582,23 +582,92 @@ compute_icc(m0) %>%
 
 View(Baseline_data_participantsrlc)
 
-for (x in 1:length(Baseline_data_participantsrlc$DSST_TOTAL)) {
-  age = Baseline_data_participantsrlc$Age[x]
-  if (age %in% 20:24) {
-    avg = 
-    sd = 
-  }
-  
-  else if (age %in% 25:30)
-  else if (age %in% 31:35)
-  else if (age %in% 36:45)
-  else if (age %in% 45:55)
-  else if (age %in% 55:65)
-  else if (age %in% 66:75)
-  else if (age %in% 76:85)
-  
+Baseline_data_participantsrlc$DSST_120 <- (Baseline_data_participantsrlc$DSST_TOTAL/90)*(120) ## to make sure that its matched to the 120 seconds norms etc
+mean(Baseline_data_participantsrlc$DSST_120)
+sd(Baseline_data_participantsrlc$DSST_120)
+
+##calculating "geschaalde score", these are scores that are standardized for each age group which makes it easier to calculate z scores 
+## this needs to be done by hand sadly, so it'll look a bit messy 
+
+which(Baseline_data_participantsrlc$Age %in% 20:25)
+Baseline_data_participantsrlc$DSST_120[which(Baseline_data_participantsrlc$Age %in% 20:25)]
+## 106.666
+
+## geschaalde score (gs) = 16
+
+geschalde_scores <- c(16)
+which(Baseline_data_participantsrlc$Age %in% 26:30)
+Baseline_data_participantsrlc$DSST_120[which(Baseline_data_participantsrlc$Age %in% 26:30)]
+
+##69.33, gs = 8
+
+geschalde_scores <- c(geschalde_scores, 8)
+#
+which(Baseline_data_participantsrlc$Age %in% 31:35)
+Baseline_data_participantsrlc$DSST_120[which(Baseline_data_participantsrlc$Age %in% 31:35)]
+
+## 56, gs = 5 
+
+geschalde_scores <- c(geschalde_scores, 5)
+#
+which(Baseline_data_participantsrlc$Age %in% 36:45)
+Baseline_data_participantsrlc$DSST_120[which(Baseline_data_participantsrlc$Age %in% 36:45)]
+
+#50.6, gs = 5
+
+geschalde_scores <- c(geschalde_scores, 5)
+
+#
+
+which(Baseline_data_participantsrlc$Age %in% 46:55)
+Baseline_data_participantsrlc$DSST_120[which(Baseline_data_participantsrlc$Age %in% 46:55)]
+
+#42.66667 44.00000 38.66667 50.66667 68.00000 45.33333 73.33333 42.66667 70.66667 76.00000, gs' = 4,5,3,6,9,5,11,4,10,11
+
+geschalde_scores <- c(geschalde_scores, 4,5,3,6,9,5,11,4,10,11)
+
+#
+
+which(Baseline_data_participantsrlc$Age %in% 56:65)
+Baseline_data_participantsrlc$DSST_120[which(Baseline_data_participantsrlc$Age %in% 56:65)]
+
+#44.00000 46.66667 40.00000 50.66667 33.33333 52.00000 44.00000 64.00000 33.33333
+#32.00000 60.00000 30.66667 73.33333 50.66667 65.33333 48.00000 36.00000 50.66667
+#60.00000 34.66667 69.33333 72.00000 72.00000
+
+##gs = 6,7,5,7,4,8,6,10,4,4,9,3,12,7,10,7,4,7,9,4,11,12,12
+
+geschalde_scores <- c(geschalde_scores, 6,7,5,7,4,8,6,10,4,4,9,3,12,7,10,7,4,7,9,4,11,12,12)
+
+##
+
+which(Baseline_data_participantsrlc$Age %in% 66:75)
+Baseline_data_participantsrlc$DSST_120[which(Baseline_data_participantsrlc$Age %in% 66:75)]
+
+##64.00000 46.66667 34.66667 70.66667, gs = 12, 8, 6,14
+
+geschalde_scores <- c(geschalde_scores, 12, 8, 6,14)
+
+
+
+zs=c()
+for (x in geschalde_scores) {
+    avg <- 9.6
+    sd <- 2.8
+    z <- (x-avg)/sd
+    zs <- c(zs, z)
 }
-## this I still need to work on
+
+count_above <- sum(zs >= 2)
+count_below <- sum(zs <= -2)
+print(count_above)
+print(count_below)
+
+# one person was above 2zs, 9 people were below -2 zs 
+
+
+
+## at least I was able to automate this part 
 
 
 ## Moca:
